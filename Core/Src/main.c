@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include"stdio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -40,7 +41,6 @@
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
-ADC_HandleTypeDef hadc3;
 
 /* USER CODE BEGIN PV */
 
@@ -48,15 +48,17 @@ ADC_HandleTypeDef hadc3;
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MPU_Config(void);
 static void MX_GPIO_Init(void);
-static void MX_ADC3_Init(void);
+void Test_Sensor();
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+
+uint16_t Loop = 0;
+uint16_t Data = 0;
 
 /* USER CODE END 0 */
 
@@ -66,12 +68,25 @@ static void MX_ADC3_Init(void);
   */
 int main(void)
 {
-  /* USER CODE BEGIN 1 */
+
+
+	/* USER CODE BEGIN 1 */
+
+//	// Enable access to the embedded flash memory
+//	    HAL_FLASH_Unlock();
+//
+//	    // Get the device electronic signature
+//
+//	    const uint32_t *uid = (const uint32_t *)0x1FF0F420;
+//
+//
+//
+//	    // Lock the embedded flash memory
+//	    HAL_FLASH_Lock();
+
+
 
   /* USER CODE END 1 */
-
-  /* MPU Configuration--------------------------------------------------------*/
-  MPU_Config();
 
   /* MCU Configuration--------------------------------------------------------*/
 
@@ -91,17 +106,47 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_ADC3_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+  // Initialize peripherals, GPIOs, etc.
+
+
   while (1)
   {
+
+
+
+	      Sensor* pSensor1 = sensor_create();
+	      sensor_set_filter_freq(pSensor1, 100);
+	      sensor_set_update_freq(pSensor1, 10);
+
+	      printf("fillter_freq: %d\n", sensor_get_filter_freq(pSensor1));
+	      printf("update_freq: %d\n", sensor_get_update_freq(pSensor1));
+
+	      sensor_destroy(pSensor1);
+
+
+//	  printf("I'm in the main loop!\r\n");
+//	 	  HAL_GPIO_TogglePin(GPIOB,LD_blue_Pin);
+//	 	  HAL_Delay(500);
+//	 	  printf("Loop Counter = %i\r\n", Loop);
+//	 	  Loop++;
+//	 	  if(Loop > 100){
+//	 		  Loop = 0;
+//	 	  }
+//	 	  HAL_Delay(50);
+//	 	  if(Loop < 25){
+//	 		  Data += 5;
+//	 	  }
+//	 	  else{
+//	 		  Data -=1000;
+//	 	  }
+
     /* USER CODE END WHILE */
-	  HAL_GPIO_WritePin(open_valve_GPIO_Port, open_valve_Pin,GPIO_PIN_SET );
 
     /* USER CODE BEGIN 3 */
   }
@@ -150,58 +195,6 @@ void SystemClock_Config(void)
 }
 
 /**
-  * @brief ADC3 Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_ADC3_Init(void)
-{
-
-  /* USER CODE BEGIN ADC3_Init 0 */
-
-  /* USER CODE END ADC3_Init 0 */
-
-  ADC_ChannelConfTypeDef sConfig = {0};
-
-  /* USER CODE BEGIN ADC3_Init 1 */
-
-  /* USER CODE END ADC3_Init 1 */
-
-  /** Configure the global features of the ADC (Clock, Resolution, Data Alignment and number of conversion)
-  */
-  hadc3.Instance = ADC3;
-  hadc3.Init.ClockPrescaler = ADC_CLOCK_SYNC_PCLK_DIV2;
-  hadc3.Init.Resolution = ADC_RESOLUTION_12B;
-  hadc3.Init.ScanConvMode = ADC_SCAN_DISABLE;
-  hadc3.Init.ContinuousConvMode = DISABLE;
-  hadc3.Init.DiscontinuousConvMode = DISABLE;
-  hadc3.Init.ExternalTrigConvEdge = ADC_EXTERNALTRIGCONVEDGE_NONE;
-  hadc3.Init.ExternalTrigConv = ADC_SOFTWARE_START;
-  hadc3.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc3.Init.NbrOfConversion = 1;
-  hadc3.Init.DMAContinuousRequests = DISABLE;
-  hadc3.Init.EOCSelection = ADC_EOC_SINGLE_CONV;
-  if (HAL_ADC_Init(&hadc3) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure for the selected ADC regular channel its corresponding rank in the sequencer and its sample time.
-  */
-  sConfig.Channel = ADC_CHANNEL_0;
-  sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_3CYCLES;
-  if (HAL_ADC_ConfigChannel(&hadc3, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-  /* USER CODE BEGIN ADC3_Init 2 */
-
-  /* USER CODE END ADC3_Init 2 */
-
-}
-
-/**
   * @brief GPIO Initialization Function
   * @param None
   * @retval None
@@ -214,9 +207,13 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOA_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(open_valve_GPIO_Port, open_valve_Pin, GPIO_PIN_RESET);
+
+  /*Configure GPIO pin Output Level */
+  HAL_GPIO_WritePin(GPIOB, LD_green_Pin|LD_blue_Pin, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : open_valve_Pin */
   GPIO_InitStruct.Pin = open_valve_Pin;
@@ -225,42 +222,36 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(open_valve_GPIO_Port, &GPIO_InitStruct);
 
+  /*Configure GPIO pins : LD_green_Pin LD_blue_Pin */
+  GPIO_InitStruct.Pin = LD_green_Pin|LD_blue_Pin;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
 /* USER CODE BEGIN MX_GPIO_Init_2 */
 /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
 
-/* USER CODE END 4 */
-
-/* MPU Configuration */
-
-void MPU_Config(void)
+int _write(int file, char *ptr, int len)
 {
-  MPU_Region_InitTypeDef MPU_InitStruct = {0};
+  (void)file;
+  int DataIdx;
 
-  /* Disables the MPU */
-  HAL_MPU_Disable();
+  for (DataIdx = 0; DataIdx < len; DataIdx++)
+  {
 
-  /** Initializes and configures the Region and the memory to be protected
-  */
-  MPU_InitStruct.Enable = MPU_REGION_ENABLE;
-  MPU_InitStruct.Number = MPU_REGION_NUMBER0;
-  MPU_InitStruct.BaseAddress = 0x0;
-  MPU_InitStruct.Size = MPU_REGION_SIZE_4GB;
-  MPU_InitStruct.SubRegionDisable = 0x87;
-  MPU_InitStruct.TypeExtField = MPU_TEX_LEVEL0;
-  MPU_InitStruct.AccessPermission = MPU_REGION_NO_ACCESS;
-  MPU_InitStruct.DisableExec = MPU_INSTRUCTION_ACCESS_DISABLE;
-  MPU_InitStruct.IsShareable = MPU_ACCESS_SHAREABLE;
-  MPU_InitStruct.IsCacheable = MPU_ACCESS_NOT_CACHEABLE;
-  MPU_InitStruct.IsBufferable = MPU_ACCESS_NOT_BUFFERABLE;
-
-  HAL_MPU_ConfigRegion(&MPU_InitStruct);
-  /* Enables the MPU */
-  HAL_MPU_Enable(MPU_PRIVILEGED_DEFAULT);
-
+    ITM_SendChar(*ptr++);
+  }
+  return len;
 }
+
+
+
+
+/* USER CODE END 4 */
 
 /**
   * @brief  This function is executed in case of error occurrence.

@@ -28,6 +28,7 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f7xx_hal.h"
+#include "sensor.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -57,10 +58,12 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define PT_1000_Pin GPIO_PIN_0
-#define PT_1000_GPIO_Port GPIOA
 #define open_valve_Pin GPIO_PIN_5
 #define open_valve_GPIO_Port GPIOA
+#define LD_green_Pin GPIO_PIN_0
+#define LD_green_GPIO_Port GPIOB
+#define LD_blue_Pin GPIO_PIN_7
+#define LD_blue_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
